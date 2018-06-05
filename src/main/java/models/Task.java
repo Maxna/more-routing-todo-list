@@ -7,15 +7,16 @@ import java.util.Objects;
 public class Task {
 
     private String description;
-    private static ArrayList<Task> instances = new ArrayList<>();
     private boolean completed;
     private LocalDateTime createdAt;
     private int id;
+    private int categoryId;
 
-    public Task(String description) {
+    public Task(String description, int categoryId) {
         this.description = description;
         this.completed = false;
         this.createdAt = LocalDateTime.now();
+        this.categoryId = categoryId;
     }
 
     public void setId(int id) {
@@ -46,21 +47,26 @@ public class Task {
         return id;
     }
 
+    public int getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Task task = (Task) o;
         return completed == task.completed &&
-                id == task.id &&
+                categoryId == task.categoryId &&
                 Objects.equals(description, task.description);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(description, completed, id);
+        return Objects.hash(description, completed, categoryId);
     }
-
-
 }

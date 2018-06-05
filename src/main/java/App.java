@@ -3,7 +3,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dao.Sql2oCategoryDao;
 import dao.Sql2oTaskDao;
+import models.Category;
 import models.Task;
 import org.sql2o.Sql2o;
 import spark.ModelAndView;
@@ -16,6 +18,9 @@ public class App {
         String connectionString = "jdbc:h2:~/todolist.db;INIT=RUNSCRIPT from 'classpath:db/create.sql'";
         Sql2o sql2o = new Sql2o(connectionString, "", "");
         Sql2oTaskDao taskDao = new Sql2oTaskDao(sql2o);
+        Sql2oCategoryDao categoryDao = new Sql2oCategoryDao(sql2o);
+
+
 
         //get: delete all tasks
         get("/tasks/delete", (req, res) -> {
@@ -37,6 +42,8 @@ public class App {
         //get: show all tasks
         get("/", (req, res) -> {
             Map<String, Object> model = new HashMap<>();
+            List<Category> allCategories = categoryDao.getAll();
+            model.put("categories", allCategories);
             List<Task> tasks = taskDao.getAll();
             model.put("tasks", tasks);
             return new ModelAndView(model, "index.hbs");
@@ -52,7 +59,7 @@ public class App {
         post("/tasks", (req, res) -> { //URL to make new task on POST route
             Map<String, Object> model = new HashMap<>();
             String description = req.queryParams("description");
-            Task newTask = new Task(description);
+            Task newTask = new Task(description, 1);
             taskDao.add(newTask);
             res.redirect("/");
             return null;
@@ -81,7 +88,7 @@ public class App {
             Map<String, Object> model = new HashMap<>();
             String newContent = req.queryParams("description");
             int idOfTaskToEdit = Integer.parseInt(req.params("id"));
-            taskDao.update(idOfTaskToEdit, newContent);
+            taskDao.update(idOfTaskToEdit, newContent, 1);
             res.redirect("/");
             return null;
         }, new HandlebarsTemplateEngine());

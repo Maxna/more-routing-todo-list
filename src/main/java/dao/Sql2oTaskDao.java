@@ -1,6 +1,5 @@
 package dao;
 import models.Task;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.sql2o.*;
 import java.util.List;
 
@@ -13,7 +12,7 @@ public class Sql2oTaskDao implements TaskDao {
 
     @Override
     public void add(Task task) {
-        String sql = "INSERT INTO tasks (description) VALUES (:description)";
+        String sql = "INSERT INTO tasks (description, categoryId) VALUES (:description, :categoryId)";
         try(Connection con = sql2o.open()){
             int id = (int) con.createQuery(sql, true)
                     .bind(task)
@@ -43,11 +42,12 @@ public class Sql2oTaskDao implements TaskDao {
     }
 
     @Override
-    public void update(int id, String newDescription) {
-        String sql = "UPDATE tasks SET description = :description WHERE id=:id";
+    public void update(int id, String newDescription, int newCategoryId) {
+        String sql = "UPDATE tasks SET (description, categoryId) = (:description, :categoryId) WHERE id=:id";
         try(Connection con = sql2o.open()) {
             con.createQuery(sql)
                     .addParameter("description", newDescription)
+                    .addParameter("categoryId", newCategoryId)
                     .addParameter("id", id)
                     .executeUpdate();
         } catch (Sql2oException ex) {
