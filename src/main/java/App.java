@@ -21,6 +21,51 @@ public class App {
         Sql2oCategoryDao categoryDao = new Sql2oCategoryDao(sql2o);
 
 
+        get("categories/new", (request, response) -> {
+            Map<String, Object> model = new HashMap<>();
+            List<Category> categories = categoryDao.getAll();
+            model.put("categories", categories);
+            return new ModelAndView(model, "category-form.hbs");
+        }, new HandlebarsTemplateEngine());
+
+        post("categories", (request, response) -> {
+            Map<String, Object> model = new HashMap<>();
+            String name = request.queryParams("name");
+            Category newCategory = new Category(name);
+            categoryDao.add(newCategory);
+            response.redirect("/");
+            return null;
+        }, new HandlebarsTemplateEngine());
+
+        get("/categories/:id", (request, response) -> {
+            Map<String, Object> model = new HashMap<>();
+            int idOfCategoryToFind = Integer.parseInt(request.params("id"));
+            Category foundCategory = categoryDao.findById(idOfCategoryToFind);
+            model.put("category", foundCategory);
+            List<Task> allTasksByCategory = categoryDao.getAllTasksByCategory(idOfCategoryToFind);
+            model.put("tasks", allTasksByCategory);
+            model.put("categories", categoryDao.getAll());
+            return new ModelAndView(model, "category-detail.hbs");
+        }, new HandlebarsTemplateEngine());
+
+        get("/categories/:id/edit", (request, response) -> {
+            Map<String, Object> model = new HashMap<>();
+            model.put("editCategory", true);
+            Category category = categoryDao.findById(Integer.parseInt(request.params("id")));
+            model.put("category", category);
+            model.put("categories", categoryDao.getAll());
+            return new ModelAndView(model, "category-form.hbs");
+        }, new HandlebarsTemplateEngine());
+
+        post("/categories/:id", (request, response) -> {
+            Map<String, Object> model = new HashMap<>();
+            int idOfCategoryToEdit = Integer.parseInt(request.params("id"));
+            String newName = request.queryParams("newCategoryName");
+            categoryDao.update(idOfCategoryToEdit, newName);
+            response.redirect("/");
+            return null;
+        }, new HandlebarsTemplateEngine());
+
 
         //get: delete all tasks
         get("/tasks/delete", (req, res) -> {
@@ -58,8 +103,11 @@ public class App {
         //task: process new task form
         post("/tasks", (req, res) -> { //URL to make new task on POST route
             Map<String, Object> model = new HashMap<>();
+            List<Category> allCategories = categoryDao.getAll();
+            model.put("categories", allCategories);
             String description = req.queryParams("description");
-            Task newTask = new Task(description, 1);
+            int categoryId = Integer.parseInt(req.queryParams("categoryId"));
+            Task newTask = new Task(description, categoryId);
             taskDao.add(newTask);
             res.redirect("/");
             return null;
